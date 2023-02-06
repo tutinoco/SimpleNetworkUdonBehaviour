@@ -5,6 +5,13 @@ using VRC.Udon;
 
 namespace tutinoco
 {
+    public enum Publisher
+    {
+        All,
+        Owner,
+        Master,
+    }
+
     public class SimpleNetworkUdonBehaviour : UdonSharpBehaviour
     {
         #if UNITY_EDITOR
@@ -12,10 +19,13 @@ namespace tutinoco
         #else
         private bool _clientSimMode = false;
         #endif
+
         private bool _ignoreJoinSync = false;
         private bool _isStandby = true;
         private bool _isInitialized = false;
         private bool _isIgnoredJoinSync = false;
+
+        private Publisher _publisher = Publisher.All;
 
         [UdonSynced(UdonSyncMode.None), FieldChangeCallback(nameof(cmds))] private string _cmds;
         public string cmds {
@@ -29,17 +39,26 @@ namespace tutinoco
             }
         }
 
-        public void SimpleNetworkInit( bool ignoreJoinSync=false )
+        public void SimpleNetworkInit( Publisher publisher, bool ignoreJoinSync=true )
         {
             _isInitialized = true;
+            _publisher = publisher;
             _ignoreJoinSync = ignoreJoinSync;
     
             if( _ignoreJoinSync && Networking.IsMaster ) SendEvent("___ignoreJoinSync__");
         }
 
+        public bool IsPublisher()
+        {
+            if( _publisher == Publisher.All ) return true;
+            if( _publisher == Publisher.Owner && Networking.IsOwner(gameObject) ) return true;
+            if( _publisher == Publisher.Master && Networking.IsMaster ) return true;
+            return false;
+        }
+
         public void SendEvent(string name, string value="", bool force=false)
         {
-            if( !Networking.IsOwner(gameObject) && !force) return;
+            if( !IsPublisher() && !force ) return;
 
             string c = (_isStandby?GenerateCode():cmds+"･")+name+":"+value;
             _isStandby = false;
@@ -47,12 +66,12 @@ namespace tutinoco
 
             if( !Networking.IsOwner(gameObject) ) Networking.SetOwner(Networking.LocalPlayer, gameObject);
             else {
-                if( _clientSimMode ) SendCustomEvent("RequestExecuteEvnets");
+                if( _clientSimMode ) SendCustomEvent("_RequestExecuteEvnets");
                 else RequestSerialization();
             }
         }
 
-        public void RequestExecuteEvnets()
+        public void _RequestExecuteEvnets()
         {
             if( _isStandby ) return;
             ExecuteEvents();
@@ -65,7 +84,7 @@ namespace tutinoco
             RequestSerialization();
         }
 
-        public override void OnPreSerialization() { RequestExecuteEvnets(); }
+        public override void OnPreSerialization() { _RequestExecuteEvnets(); }
 
         public virtual void ReceiveEvent(string name, string value) { }
 
