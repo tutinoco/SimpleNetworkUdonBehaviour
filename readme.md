@@ -132,7 +132,7 @@ monster.SendEvent("jump", 5.0f);
 //（もちろん、どのパソコンから見ても同じように見えるよ！）
 foreach( monster in monsters ) {
     float power = Random.Range(3.0f, 6.0f);
-    monster.SendEvent("jump", power);`
+    monster.SendEvent("jump", power);
 }
 ```
 
@@ -199,6 +199,10 @@ SendEvent("イベント名", "値", true);
 ### JoinSync
 （書き途中...）
 
+### ExecEvent
+Udonでは、イベントのローカル実行に`SendCustomEvent`が用意されていますが、似たように自身のPCのみで`ReceiveEvent`を呼ぶ方法に`ExecEvent`メソッドが用意されています。
+`ExecEvent`はローカル動作するため、メソッドの第三引数にForceモードは用意されていません。
+
 ## 導入
 1.  [VRChat Creator Companion](https://github.com/vrchat-community/creator-companion)などで、適当な[UdonSharp](https://github.com/vrchat-community/UdonSharp)プロジェクトを作成または開きます。
 1. `Assets`フォルダに`tutinoco`フォルダを作成し、ダウンロードした`SimpleNetworkUdonBehaviour`を配置するか`git clone https://github.com/tutinoco/SimpleNetworkUdonBehaviour.git`を実行します。
@@ -211,4 +215,4 @@ SendEvent("イベント名", "値", true);
 * `SendCustomNetworkEvent`のようにメソッドを呼び出すことはできません。
 Udonでは、`MethodInfo`が使用できないため、このような仕様になりましたが、`SendCustomNetworkEvent`は受信用メソッドが増えすぎてしまうため、個人的にこっちのほうが好みです。
 * `OnOwnershipTransferred`と`OnPreSerialization`メソッドを利用しているため、サブクラスでも利用したいときは、親クラス（SimpleNetworkUdonBehaviour）にも渡してあげる必要があります。
-* 複数コマンドの一括受信に対応するため`･`（半角中黒）を利用しているため、文字列の送信に`･`を使うことはできません。
+* 複数コマンドの一括受信に対応するため`･`（半角中黒）を利用しています。そのため、文字列の送信に`･`を使うことはできません。
