@@ -219,3 +219,4 @@ ExecEvent("イベント名", "値");
 Udonでは、`MethodInfo`が使用できないため、このような仕様になりましたが、`SendCustomNetworkEvent`は受信用メソッドが増えすぎてしまうため、個人的にこっちのほうが好みです。
 * `OnOwnershipTransferred`と`OnPreSerialization`メソッドを利用しているため、サブクラスでも利用したいときは、親クラス（SimpleNetworkUdonBehaviour）にも渡してあげる必要があります。
 * 複数コマンドの一括受信に対応するため`･`（半角中黒）を利用しています。そのため、文字列の送信に`･`を使うことはできません。
+* イベント名に`:`と`__init__`は利用できません。
