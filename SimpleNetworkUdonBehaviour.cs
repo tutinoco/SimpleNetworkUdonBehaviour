@@ -74,19 +74,19 @@ namespace tutinoco
             return false;
         }
 
-        public void ExecEvent(string name, string value) { ReceiveEvent(name, value); }
+        public void ExecEvent(string name, string value) { ReceiveEvent(name, value); ReceiveEvent(name, value, Networking.LocalPlayer); }
         public void SendEvent(string name, string value, bool force=false) { SendEvent(name, value, JoinSync.None, force); }
         public void SendEvent(string name, string value, JoinSync joinSync, bool force=false)
         {
             if( !IsPublisher() && !force ) return;
 
-            string c = (_isStandby?_GenerateCode():cmds+"･")+name+":"+value;
+            string id = Networking.LocalPlayer.playerId.ToString("d2");
+            string c = (_isStandby?_GenerateCode():cmds+"･")+id+name+":"+value;
             _isStandby = false;
             cmds = c;
 
             if( joinSync == JoinSync.Latest ) ClearJoinSync(name);
-            if( joinSync != JoinSync.None ) jcmds = (jcmds!=""?jcmds+"･":"")+name+":"+value;
-            Debug.Log(jcmds);
+            if( joinSync != JoinSync.None ) jcmds = (jcmds!=""?jcmds+"･":"")+id+name+":"+value;
 
             if( !Networking.IsOwner(gameObject) ) Networking.SetOwner(Networking.LocalPlayer, gameObject);
             else if( _clientSimMode ) SendCustomEvent("_RequestReceives");
@@ -119,7 +119,8 @@ namespace tutinoco
 
         public override void OnPreSerialization() { _RequestReceives(); }
 
-        public virtual void ReceiveEvent(string name, string value) { }
+            public virtual void ReceiveEvent(string name, string value) { }
+        public virtual void ReceiveEvent(string name, string value, VRCPlayerApi player) { }
 
         private string _GenerateCode() { return ""+((int)UnityEngine.Random.Range(10000000,100000000)); }
 
@@ -132,11 +133,13 @@ namespace tutinoco
 
             string[] data = c.Substring(8).Split('･');
             foreach( string cmd in data ) {
+                VRCPlayerApi player = VRCPlayerApi.GetPlayerById(int.Parse(cmd.Substring(0,2)));
                 int find = cmd.IndexOf(":");
-                string name = cmd.Substring(0,find);
+                string name = cmd.Substring(2,find-2);
                 if( name == "__init__" ) return;
                 string value = cmd.Substring(find+1);
                 ReceiveEvent(name, value);
+                ReceiveEvent(name, value, player);
             }
         }
 
